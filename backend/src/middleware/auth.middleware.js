@@ -29,7 +29,7 @@ export const authMiddleware=async(req,res,next)=>{
              where:{id:decode.id},
             select:{
                 id:true,
-                image:true,
+                
                 name:true,
                 email:true,
                 role:true

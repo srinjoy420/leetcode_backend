@@ -81,11 +81,11 @@ export const Loginuser=async(req,res)=>{
             message:"User created successfully",
             sucess:true,
             user:{
-                id:newuser.id,
-                name:newuser.name,
-                email:newuser.email,
-                role:newuser.role,
-                image:newuser.image
+                id:user.id,
+                name:user.name,
+                email:user.email,
+                role:user.role,
+                
             }
         })
         
@@ -118,6 +118,11 @@ export const logOut=async(req,res)=>{
 export const getProfile=async(req,res)=>{
     try {
         const user=req.user
+        if(!user){
+            return res.status(404).json({
+                message:"user not found"
+            })
+        }
         res.status(200).json({
             sucess:true,
             user
