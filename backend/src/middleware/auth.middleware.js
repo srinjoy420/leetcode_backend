@@ -69,7 +69,7 @@ export const isAdmin = async (req, res, next) => {
         }
         next()
     } catch (error) {
-        console.log("error in auth admin", error);
+        console.log("error in Check user  admin", error);
         res.status(500).json({
             message: "some problem occured "
         })
