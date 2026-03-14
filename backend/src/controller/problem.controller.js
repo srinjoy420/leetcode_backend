@@ -24,6 +24,8 @@ export const createProblem = async (req, res) => {
 
     try {
         for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
+            //it makes like obejct like structure
+            // runs the loop once for each language
             const languageId = getLanguageId(language);
 
             if (!languageId) {
@@ -33,6 +35,7 @@ export const createProblem = async (req, res) => {
             }
 
             // Build submissions array for this language
+            //one submission for each test case
             const submissions = testCases.map((tc) => ({
                 source_code: solutionCode,
                 language_id: languageId,
@@ -41,6 +44,7 @@ export const createProblem = async (req, res) => {
             }));
 
             const submissionResults = await submitBatch(submissions);
+            //extract tokens exapmple ["abc123","xyz789"]
             const tokens = submissionResults.map((r) => r.token);
             const results = await pollBatchResults(tokens);
 
@@ -87,3 +91,157 @@ export const createProblem = async (req, res) => {
         });
     }
 };
+
+export const getallProblems = async (req, res) => {
+    const problems = await prisma.problem.findMany()
+    try {
+        if (!problems || problems.length === 0) {
+            return res.status(400).json({ message: "there is no problem" })
+        }
+        res.status(200).json({ success: true, message: "the problems fetched succesfully", problems })
+    } catch (error) {
+        console.log("error in fetching all problems", error);
+        res.status(404).json({ success: false, message: "the problems cant fetched succesfully" })
+
+
+    }
+}
+
+export const getProblemById = async (req, res) => {
+    const { id } = req.params
+    try {
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "the id is required",
+
+            })
+        }
+        const problem = await prisma.problem.findUnique({
+            where: {
+                id: id
+            }
+        })
+        if (!problem) {
+            return res.status(400).json({
+                success: false,
+                message: "the problem cant find"
+            })
+        }
+        res.status(200).json({
+            message: "the problem found succesfully",
+            succcess: true,
+            problem
+        })
+    } catch (error) {
+        console.log("there is a error in finding a problem", error);
+        res.status(400).json({
+            message: "the problem not found succesfully",
+            succcess: false,
+
+        })
+
+
+
+    }
+}
+
+export const updateProblem = async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: "Problem ID is required" });
+    }
+
+    const {
+        title, description, difficulty, tags, examples,
+        constraints, hints, editorial, testCases,
+        codeSnippets, referenceSolutions
+    } = req.body;
+
+    if (!title || !description || !difficulty || !tags || !examples || !constraints || !testCases || !codeSnippets || !referenceSolutions) {
+        return res.status(400).json({ message: "Please fill all required fields" });
+    }
+
+    try {
+        const problem = await prisma.problem.findUnique({ where: { id } });
+
+        if (!problem) {
+            return res.status(404).json({ message: "Problem not found" }); // ✅ return added
+        }
+
+        for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
+            const languageId = getLanguageId(language);
+
+            if (!languageId) {
+                return res.status(400).json({ error: `Unsupported language: ${language}` });
+            }
+
+            const submissions = testCases.map((tc) => ({
+                source_code: solutionCode,
+                language_id: languageId,
+                stdin: tc.input,
+                expected_output: tc.output
+            }));
+
+            const submissionResults = await submitBatch(submissions);
+            const tokens = submissionResults.map((r) => r.token);
+            const results = await pollBatchResults(tokens);
+
+            for (let i = 0; i < results.length; i++) {
+                if (results[i].status.id !== 3) {
+                    return res.status(400).json({
+                        error: `Reference solution failed for ${language} on input: ${submissions[i].stdin}`,
+                        details: results[i]
+                    });
+                }
+            } // ✅ loop ends here — no DB call inside
+        }
+
+        // ✅ update is outside both loops, has where clause, no userId
+        const updatedProblem = await prisma.problem.update({
+            where: { id },
+            data: {
+                title, description, difficulty, tags,
+                examples, constraints, hints, editorial,
+                testCases, codeSnippets, referenceSolutions
+            }
+        });
+
+        return res.status(200).json({ // ✅ 200 not 201
+            message: "Problem updated successfully",
+            success: true,
+            problem: updatedProblem
+        });
+
+    } catch (error) {
+        console.error("Error updating problem:", error);
+        return res.status(500).json({ error: "An error occurred while updating the problem" });
+    }
+};
+export const deleteProblem=async(req,res)=>{
+    const {id}=req.params
+    if(!id){
+        return res.status(400).json({message:"the id is required"})
+    }
+    try {
+        const problem=await prisma.problem.findUnique({
+            where:{
+                id:id
+            }
+        })
+        if(!problem){
+            return res.status(400).json({message:"user founed succesfully"})
+        }
+        await prisma.problem.delete({
+            where:{
+                id
+            }
+        })
+        res.status(200).json({message:"the problem deleted succesfully"})
+    } catch (error) {
+        console.error("Error deleting problem:", error);
+        return res.status(500).json({ error: "An error occurred while deleting  the problem" });
+        
+    }
+}
