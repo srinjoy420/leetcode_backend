@@ -67,3 +67,4 @@ model Problem{
   @@index([difficulty])
 
 }
+
