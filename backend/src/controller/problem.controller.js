@@ -245,3 +245,7 @@ export const deleteProblem=async(req,res)=>{
         
     }
 }
+
+export const getallProblemssolvedByUser=async(req,res)=>{
+    
+}
