@@ -89,6 +89,7 @@ export const executeCode = async (req, res) => {
         });
 
         // 7.  Mark problem as solved if all passed
+        //upsert if record doesnotexixt create or update
         if (allPassed) {
             await prisma.problemsolved.upsert({
                 where: { userId_problemId: { userId, problemId } },
@@ -97,7 +98,7 @@ export const executeCode = async (req, res) => {
             });
         }
 
-        // 8.  Fixed: prisma not db
+        // 8.  save individual test cases 
         const submissionWithTestCases = await prisma.submission.findUnique({
             where: { id: submission.id },
             include: { testCases: true },

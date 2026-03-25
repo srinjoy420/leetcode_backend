@@ -4,6 +4,8 @@ import cookieparser from "cookie-parser"
 import userroutes from "./routes/user.routes.js"
 import problemrouter from "./routes/problem.routes.js"
 import executeCodeRouter from "./routes/executecode.routes.js"
+import submissionRouter from "./routes/submission.routes.js"
+
 
 
 
@@ -15,6 +17,7 @@ app.use(cookieparser())
 app.use("/api/v1/auth",userroutes)
 app.use("/api/v1/problem",problemrouter)
 app.use("/api/v1/executecode",executeCodeRouter)
+app.use("/api/v1/submission",submissionRouter)
 
 app.listen(port,()=>{
     console.log(`server is running on ${port}`);
