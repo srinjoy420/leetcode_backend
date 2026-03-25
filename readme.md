@@ -849,3 +849,6 @@ catch (error) {
 Catches anything that throws inside the try block — network errors from Judge0, DB errors, unexpected data shapes. Always returns a 500 with a message so the frontend doesn't hang waiting for a response.
 
 10.
+
+--------------------------------------- teh submission --------------------------------
+create the submission batches for the all submission releted to the user 
