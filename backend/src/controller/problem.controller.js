@@ -219,33 +219,57 @@ export const updateProblem = async (req, res) => {
         return res.status(500).json({ error: "An error occurred while updating the problem" });
     }
 };
-export const deleteProblem=async(req,res)=>{
-    const {id}=req.params
-    if(!id){
-        return res.status(400).json({message:"the id is required"})
+export const deleteProblem = async (req, res) => {
+    const { id } = req.params
+    if (!id) {
+        return res.status(400).json({ message: "the id is required" })
     }
     try {
-        const problem=await prisma.problem.findUnique({
-            where:{
-                id:id
+        const problem = await prisma.problem.findUnique({
+            where: {
+                id: id
             }
         })
-        if(!problem){
-            return res.status(400).json({message:"user founed succesfully"})
+        if (!problem) {
+            return res.status(400).json({ message: "user founed succesfully" })
         }
         await prisma.problem.delete({
-            where:{
+            where: {
                 id
             }
         })
-        res.status(200).json({message:"the problem deleted succesfully"})
+        res.status(200).json({ message: "the problem deleted succesfully" })
     } catch (error) {
         console.error("Error deleting problem:", error);
         return res.status(500).json({ error: "An error occurred while deleting  the problem" });
-        
+
     }
 }
 
-export const getallProblemssolvedByUser=async(req,res)=>{
-    
+export const getallProblemssolvedByUser = async (req, res) => {
+    try {
+        const problems = await prisma.problem.findMany({
+            where: {
+                solveBy: { //means — "at least one record in solveBy matches this condition"
+                    some: {  //So this says: "return problems where at least one entry in solveBy belongs to the logged-in user"
+                        userId: req.user.id
+                    }
+                }
+
+            },
+            include: { //include: { solveBy } says: also attach the solveBy records to each problem
+                solveBy: {
+                    where: { //The inner where filters it down to only the current user's solve record — otherwise you'd get every user's solve entry for that problem, which is unnecessary
+                        userId: req.user.id
+                    }
+                }
+            }
+
+        })
+        res.status(200).json({ success: true, message: "the problems solved by user fetched succesfully", problems })
+    } catch (error) {
+        console.error("Error fetching problems solved by user:", error);
+        return res.status(500).json({ error: "An error occurred while fetching problems solved by user" });
+
+    }
 }
