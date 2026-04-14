@@ -273,3 +273,35 @@ export const getallProblemssolvedByUser = async (req, res) => {
 
     }
 }
+export const searchProblem=async(req,res)=>{
+    const userId=req.user.id;
+    if(!userId){
+        return res.status(404).json({message:"user not found"});
+    }
+    try {
+        const where={}
+        if(req.query.difficulty){
+            where.difficulty=req.query.difficulty;
+        }
+        if(req.query.tags){
+            where.tags={has:req.query.tags};
+
+        }
+        if(req.query.title){
+            where.title={contains:req.query.title,mode:"insensitive"};
+        }
+        const problems=await prisma.problem.findMany({
+            where
+           
+        })
+        res.status(200).json({success:true,message:"the problem fetched succesfully",problems})
+
+
+    } catch (error) {
+        console.log("the problem fetched have some problem",error);
+        res.status(400).json({message:"the problem fetched have some problem",success:false})
+        
+        
+    }
+
+}
