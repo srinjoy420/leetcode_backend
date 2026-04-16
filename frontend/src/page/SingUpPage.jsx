@@ -125,6 +125,7 @@ const SingUpPage = () => {
               <Link to='/login' className='link link-primary'>Sign in</Link>
             </p>
           </div>
+          
 
         </div>
       </div>
