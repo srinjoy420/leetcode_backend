@@ -36,6 +36,7 @@ model User {
   submissions Submission[]
   problemsolved Problemsolved[]
   playlists Playlist[]
+  ratings ProblemRating[]
 
   @@index([role])
 }
@@ -43,6 +44,10 @@ enum Difficulty {
   EASY
   MEDIUM
   HARD
+}
+enum votetype{
+  UPVOTE
+  DOWNVOTE
 }
 
 model Problem{
@@ -52,6 +57,8 @@ model Problem{
   difficulty  Difficulty
   tags        String[] //["tag1",tag2]
   userId      String
+  upVotes     Int @default(0)
+  downVotes  Int  @default(0)
   examples    Json
   constraints String
   hints       String?
@@ -70,6 +77,7 @@ model Problem{
   submissions Submission[]
   solveBy Problemsolved[]
   probLemsInPlayList ProblemInPlaylist[]
+  ratings ProblemRating[]
   @@index([difficulty])
 
 }
@@ -147,4 +155,15 @@ model ProblemInPlaylist{
   @@unique([playListId,problemId])
 
 
+}
+model ProblemRating{
+  id String @id @default(cuid())
+  userId String
+  problemId String
+  vote votetype
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  problem Problem @relation(fields: [problemId],references: [id],onDelete: Cascade)
+  @@unique([userId, problemId])
 }

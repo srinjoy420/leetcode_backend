@@ -2,21 +2,33 @@ import React, { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Link } from "react-router-dom"
-import { Code, Mail, EyeOff, Loader2, Lock, Eye } from "lucide-react"
+import { Code, Mail, EyeOff, Lock, Eye } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { z } from "zod"
+import AuthImagePattern from '../components/AuthImagePattern'
+import { useAuthStore } from '../store/useAuthStore.js'
 
 const singUpSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Min six characters required"),
-  name: z.string()
+  name: z.string().min(1, "name is required")
 })
 
 const SingUpPage = () => {
+  const { isSinginUp, singUp } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(singUpSchema) })
 
   const onSubmit = async (data) => {
-    console.log(data)
+    try {
+      await singUp(data)
+      console.log("singing up ....", data);
+
+    } catch (error) {
+      console.log("error in sinnigup", error);
+
+
+    }
   }
 
   return (
@@ -112,9 +124,16 @@ const SingUpPage = () => {
               )}
             </div>
 
-            {/* Submit */}
-            <button type='submit' className='btn btn-primary w-full'>
-              Create Account
+            {/* Submit button */}
+            <button type='submit' className='btn btn-primary w-full' disabled={isSinginUp}>
+              {isSinginUp ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Sign Up"
+              )}
             </button>
 
           </form>
@@ -125,10 +144,15 @@ const SingUpPage = () => {
               <Link to='/login' className='link link-primary'>Sign in</Link>
             </p>
           </div>
-          
+
 
         </div>
       </div>
+      {/* right side image */}
+      <AuthImagePattern
+        title={"Welcome to our platform"}
+        subtitle={"Sign up to get started"}
+      />
     </div>
   )
 }
