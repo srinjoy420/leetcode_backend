@@ -1,8 +1,11 @@
 import React from 'react'
+import CreateProblemFrom from '../components/CreateProblemFrom'
 
 const AddProblem = () => {
   return (
-    <div>AddProblem</div>
+    <div>
+      <CreateProblemFrom/>
+    </div>
   )
 }
 
