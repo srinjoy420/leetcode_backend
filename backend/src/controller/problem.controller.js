@@ -93,7 +93,17 @@ export const createProblem = async (req, res) => {
 };
 
 export const getallProblems = async (req, res) => {
-    const problems = await prisma.problem.findMany()
+    const problems = await prisma.problem.findMany(
+        {
+            include:{
+                solveBy:{
+                    where:{
+                        userId:req.user.id
+                    }
+                }
+            }
+        }
+    )
     try {
         if (!problems || problems.length === 0) {
             return res.status(400).json({ message: "there is no problem" })
