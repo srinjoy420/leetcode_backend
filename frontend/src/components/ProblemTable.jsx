@@ -3,17 +3,26 @@ import { useProblemStore } from '../store/useProblemStore.js'
 
 import { useAuthStore } from "../store/useAuthStore.js";
 import { Link } from "react-router-dom";
-import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from "lucide-react";
+import { Bookmark, PencilIcon, Trash, TrashIcon, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { useActionStore } from '../store/useAction.js';
+import { usePlayListStore } from '../store/usePlayListStore.js';
+import CreatePlaylistModal from './createPlaylistModel.jsx';
+import AddToPlaylist from './AddToPlaylist.jsx';
+
+
 
 const ProblemTable = ({ problems }) => {
     const { authUser } = useAuthStore()
-    const{isDeleating,deleteProblem}=useActionStore()
+    const { isDeleating, deleteProblem } = useActionStore()
+    const {createPlaylist}=usePlayListStore()
     const [search, setsearch] = useState("")
     const [dificullty, setDifficulty] = useState("ALL")
     const [seletedTag, setselectedTag] = useState("ALL")
     const [currentPage, setCurrentPage] = useState(1)
     const [isSolved, setIsSolved] = useState(false)
+    const[isCreateModelOpen,setIsCreateModelOpen]=useState(false)
+    const[isaddPlaylistModelOpen,setIsaddPlaylistModelOpen]=useState(false)
+    const[selectedProblemId,setSelectedProblemId]=useState(null)
     const difficulties = ["EASY", "MEDIUM", "HARD"]
     const allTags = useMemo(() => {
         if (!Array.isArray(problems)) return []
@@ -44,8 +53,18 @@ const ProblemTable = ({ problems }) => {
     }, [filteredProblems, currentPage])
 
     //handleDelete logic
-    const handleDelete=(id)=>{
+    const handleDelete = (id) => {
         deleteProblem(id)
+    }
+    //create playlist
+    const createPlaylistHandeler=async(data)=>{
+        await createPlaylist(data)
+    }
+    // add to the playlisty
+    const handeladdtoPlaylist=async(problemId)=>{
+         setSelectedProblemId(problemId)
+         setIsaddPlaylistModelOpen(true)
+
     }
     return (
 
@@ -55,7 +74,7 @@ const ProblemTable = ({ problems }) => {
                 <h2 className="text-2xl font-bold">Problems</h2>
                 <button
                     className="btn btn-primary gap-2"
-                    onClick={() => { }}
+                    onClick={() => setIsCreateModelOpen(true)}
                 >
                     <Plus className="w-4 h-4" />
                     Create Playlist
@@ -117,7 +136,7 @@ const ProblemTable = ({ problems }) => {
                                             <input
                                                 type='checkbox'
                                                 checked={isSolved}
-                                                onChange={() => { }}   
+                                                onChange={() => { }}
                                                 readOnly
                                                 className="checkbox checkbox-sm"
                                             />
@@ -153,24 +172,26 @@ const ProblemTable = ({ problems }) => {
                                         {/* the delete button */}
                                         <td>
                                             <div>
-                                                {authUser?.role==="ADMIN" && (
-                                                   <div className="flex gap-2">
-                                                     <button
-                                                       onClick={()=>handleDelete(problem.id)}
-                                                        className="btn btn-sm btn-error"
-                                                    >
-                                                        <Trash
-                                                            className="w-4 h-4"
-                                                            
-                                                        />
-                                                    </button>
-                                                    <button  disabled className="btn btn-sm btn-warning">
-                                                        <PencilIcon className="w-4 h-4 text-white"/>
-                                                    </button>
-                                                   </div>
+                                                {authUser?.role === "ADMIN" && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleDelete(problem.id)}
+                                                            className="btn btn-sm btn-error"
+                                                        >
+                                                            <Trash
+                                                                className="w-4 h-4"
+
+                                                            />
+                                                        </button>
+                                                        <button disabled className="btn btn-sm btn-warning">
+                                                            <PencilIcon className="w-4 h-4 text-white" />
+                                                        </button>
+                                                    </div>
                                                 )}
-                                                <button className="btn btn-sm btn-outline flex gap-2 items-center">
-                                                    <Bookmark className="w-4 h-4"/>
+                                                <button className="btn btn-sm btn-outline flex gap-2 items-center"
+                                                onClick={()=>handeladdtoPlaylist(problem.id)}
+                                                >
+                                                    <Bookmark className="w-4 h-4" />
                                                     <span className="hidden sm:inline">Save to the playlist</span>
                                                 </button>
                                             </div>
@@ -192,6 +213,40 @@ const ProblemTable = ({ problems }) => {
 
             </div>
             {/* pagination */}
+            <div className="flex justify-center mt-6 gap-2">
+                <button
+                className='btn btn-sm'
+                disabled={currentPage===1}
+                onClick={()=>setCurrentPage((prev)=>prev-1)}
+                >
+                    <ArrowLeft />
+                    prev
+                </button>
+                <span className='btn btn-ghosh btn-sm'>
+                    {currentPage}/{totalPages}
+                </span>
+                 <button
+                 className='btn btn-sm'
+                  disabled={currentPage===totalPages}
+                  onClick={()=>setCurrentPage((prev)=>prev+1)}
+                 >
+                    <ArrowRight />
+                    Next
+                </button>
+
+            </div>
+            {/* models */}
+            <CreatePlaylistModal
+                isOpen={isCreateModelOpen}
+                onClose={() => setIsCreateModelOpen(false)}
+                onSubmit={createPlaylistHandeler}
+               
+            />
+            <AddToPlaylist
+                isOpen={isaddPlaylistModelOpen}
+                onClose={()=>setIsaddPlaylistModelOpen(false)}
+                problemId={selectedProblemId}
+            />
         </div>
 
     )

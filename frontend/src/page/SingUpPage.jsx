@@ -67,9 +67,10 @@ const SingUpPage = () => {
                 />
               </div>
               {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                <p className="label-text-alt text-error">{errors.name.message}</p>
               )}
             </div>
+            
 
             {/* Email */}
             <div className='form-control'>
