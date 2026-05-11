@@ -7,32 +7,43 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useProblemStore } from "../store/useProblemStore";
+import { getLanguageId } from "../lib/lang";
+import SubmissionResults from "../components/Submission.jsx";
+
 
 const ProblemPage = () => {
   const { id } = useParams();
-  const { getProblemByid, problem, isProblemLoading } = useProblemStore();
+  const {
+    getProblemByid,
+    problem,
+    isProblemLoading,
+    iseExecuting,
+    submission,
+    exeCuteCode,
+  } = useProblemStore();
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [selectLanguage, setSelectLanguage] = useState("Javascript");
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [testCases, setTestCases] = useState([]);
   const submissionCount = 10;
-  const submission = false;
+  
 
   useEffect(() => {
     getProblemByid(id);
   }, [id]);
 
   useEffect(() => {
-    if (problem) {
-      setCode(problem.codeSnippets?.[selectLanguage] || "");
-      setTestCases(
-        problem.testCases?.map((tc) => ({  // ✅ fixed: was problem.testCase
-          input: tc.input,
-          output: tc.output,
-        })) || []
-      );
-    }
+    if (!problem) return;
+    setCode(problem.codeSnippets?.[selectLanguage] || "");
+    const raw = problem.testCases;
+    const list = Array.isArray(raw) ? raw : [];
+    setTestCases(
+      list.map((tc) => ({
+        input: tc?.input ?? tc?.stdin ?? "",
+        output: tc?.output ?? tc?.expected_output ?? tc?.expectedOutput ?? "",
+      }))
+    );
   }, [problem, selectLanguage]);
 
   const handelLanguageChange = (e) => {
@@ -41,16 +52,20 @@ const ProblemPage = () => {
     setCode(problem?.codeSnippets?.[lang] || "");
   };
 
-  if (isProblemLoading || !problem) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-base-200">
-        <div className="flex flex-col items-center gap-3">
-          <span className="loading loading-spinner loading-lg text-primary" />
-          <p className="text-sm text-base-content/40">Loading problem...</p>
-        </div>
-      </div>
-    );
-  }
+  //the run code
+  const handelrunCode=(e)=>{
+    e.preventDefault()
+    try {
+      const language_id=getLanguageId(selectLanguage)
+      const stdin=(problem.testCases ?? []).map((tc)=>tc.input ?? tc.stdin)
+      const expected_outputs=testCases.map((tc)=>tc.output)
+      exeCuteCode({source_code:code,language_id,stdin,expected_outputs,problemId:id})
+    } catch (error) {
+      console.log("error in running the code",error);
+      
+      
+    }
+  } 
 
   const renderTab = () => {
     switch (activeTab) {
@@ -138,7 +153,16 @@ const ProblemPage = () => {
     }
   };
 
-  return (
+  const showLoading = isProblemLoading || !problem;
+
+  return showLoading ? (
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
+      <div className="flex flex-col items-center gap-3">
+        <span className="loading loading-spinner loading-lg text-primary" />
+        <p className="text-sm text-base-content/40">Loading problem...</p>
+      </div>
+    </div>
+  ) : (
     <div className="min-h-screen bg-base-200 w-full">
 
       {/* Navbar */}
@@ -245,7 +269,7 @@ const ProblemPage = () => {
               <div className="h-[540px] w-full">
                 <Editor
                   height="100%"
-                  language={selectLanguage.toLowerCase()}
+                  language={selectLanguage?.toLowerCase() || "javascript"}
                   theme="vs-dark"
                   value={code}
                   onChange={(value) => setCode(value || "")}
@@ -262,7 +286,7 @@ const ProblemPage = () => {
               </div>
 
               <div className="p-3 border-t border-base-300 bg-base-200 flex justify-between items-center">
-                <button className="btn btn-sm btn-primary gap-2" onClick={() => {}}>
+                <button className={`btn btn-sm btn-primary gap-2 ${iseExecuting ? "loading":""}`} onClick={handelrunCode} disabled={iseExecuting}>
                   <Play className="w-3 h-3 fill-current" />
                   Run
                 </button>
@@ -274,34 +298,41 @@ const ProblemPage = () => {
           </div>
         </div>
 
-        {/* Test cases */}
+        {submission?.testCases?.length > 0 && (
+          <div className="mt-6">
+            <SubmissionResults submission={submission} />
+          </div>
+        )}
+
         <div className="card bg-base-100 shadow-md border border-base-300 mt-4">
           <div className="card-body p-4">
-            {submission ? (
-              <p className="text-center text-base-content/50 text-sm">Submission data</p>
-            ) : (
-              <>
-                <h3 className="font-bold text-base mb-3">Test Cases</h3>
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra table-sm w-full">
-                    <thead>
-                      <tr>
-                        <th className="text-xs">Input</th>
-                        <th className="text-xs">Expected Output</th>
+            <h3 className="font-bold text-base mb-3">Test Cases</h3>
+            <div className="overflow-x-auto">
+              <table className="table table-zebra table-sm w-full">
+                <thead>
+                  <tr>
+                    <th className="text-xs">Input</th>
+                    <th className="text-xs">Expected Output</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {testCases.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} className="text-center text-sm text-base-content/40 py-6">
+                        No sample test cases on this problem.
+                      </td>
+                    </tr>
+                  ) : (
+                    testCases.map((test, index) => (
+                      <tr key={index}>
+                        <td className="font-mono text-sm whitespace-pre-wrap">{test.input}</td>
+                        <td className="font-mono text-sm whitespace-pre-wrap">{test.output}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {testCases.map((test, index) => (  // ✅ fixed: was testCase
-                        <tr key={index}>
-                          <td className="font-mono text-sm">{test.input}</td>
-                          <td className="font-mono text-sm">{test.output}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

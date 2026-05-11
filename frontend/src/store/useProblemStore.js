@@ -8,6 +8,8 @@ export const useProblemStore=create((set)=>({
     solvedProblems:[],
     isProblemsLoading:false,
     isProblemLoading:false,
+    iseExecuting:false,
+    submission:null,
 
     //get all probolems
     getallProblems:async()=>{
@@ -31,7 +33,7 @@ export const useProblemStore=create((set)=>({
         }
     },
     getProblemByid:async(id)=>{
-        set({isProblemLoading:true})
+        set({ isProblemLoading:true, submission:null })
         try {
             const res=await axiosInstance.get(`/problem/getproblem/${id}`)
             console.log("succesfully get the problem",res.data.problem);
@@ -58,7 +60,21 @@ export const useProblemStore=create((set)=>({
             console.log("cant find all solutions");
             
         }
-    }
+    },
+
+    exeCuteCode: async (data) => {
+        set({ iseExecuting: true })
+        try {
+            const res = await axiosInstance.post("/executecode", data)
+            set({ submission: res.data.submission })
+            toast.success(res.data.message || "Code executed successfully")
+        } catch (error) {
+            set({ submission: null })
+            toast.error(error.response?.data?.error || "Execution failed")
+        } finally {
+            set({ iseExecuting: false })
+        }
+    },
 
 
 }))
