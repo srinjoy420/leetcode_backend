@@ -9,6 +9,9 @@ import { Link, useParams } from "react-router-dom";
 import { useProblemStore } from "../store/useProblemStore";
 import { getLanguageId } from "../lib/lang";
 import SubmissionResults from "../components/Submission.jsx";
+import { useSubmissionStore } from "../store/useSubmissionStore.js";
+import SubmissionList from "../components/SubmissionList.jsx";
+
 
 
 const ProblemPage = () => {
@@ -21,16 +24,18 @@ const ProblemPage = () => {
     submission,
     exeCuteCode,
   } = useProblemStore();
+  const { submissions, isLoading:isSubmissionsLoading, getAllSubmission, getSubmissionforProblem, submissionCount, getSubmissioncountForProblem } = useSubmissionStore()
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [selectLanguage, setSelectLanguage] = useState("Javascript");
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [testCases, setTestCases] = useState([]);
-  const submissionCount = 10;
+
   
 
   useEffect(() => {
     getProblemByid(id);
+    getSubmissioncountForProblem(id)
   }, [id]);
 
   useEffect(() => {
@@ -45,6 +50,14 @@ const ProblemPage = () => {
       }))
     );
   }, [problem, selectLanguage]);
+
+  useEffect(()=>{
+    if(activeTab ==="submissions" && id){
+      getSubmissioncountForProblem(id)
+      getSubmissionforProblem(id)
+    }
+  },[activeTab, id])
+  
 
   const handelLanguageChange = (e) => {
     const lang = e.target.value;
@@ -126,10 +139,7 @@ const ProblemPage = () => {
 
       case "submissions":
         return (
-          <div className="flex flex-col items-center justify-center py-16 text-base-content/30 gap-3">
-            <Code2 className="w-10 h-10 opacity-20" />
-            <p className="text-sm">No submissions yet</p>
-          </div>
+         <SubmissionList problemId={id} submissions={submissions} isLoading={isSubmissionsLoading} />
         );
 
       case "discussion":
@@ -144,7 +154,14 @@ const ProblemPage = () => {
         return (
           <div className="flex flex-col items-center justify-center py-16 text-base-content/30 gap-3">
             <Lightbulb className="w-10 h-10 opacity-20" />
-            <p className="text-sm">No hints available</p>
+            {
+              problem?.hints ?(
+                <div  className="bg-base-200 p-6 rounded-xl">
+                <span className="bg-black/90 px-4 py-1 rounded-lg font-semibold text-white text-lg">{problem.hints}</span></div>
+              ):(
+                  <div>No hints yet</div>
+                )
+            }
           </div>
         );
 
