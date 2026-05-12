@@ -46,16 +46,10 @@ export const getallPlaylist = async (req, res) => {
             }
 
         })
-        if (!problems || problems.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "the playlist not found"
-            })
-        }
         res.status(200).json({
             success: true,
             message: "the playlist fetched successfully",
-            problems
+            problems: problems ?? []
         })
     } catch (error) {
         console.log("error in fetching all playlist", error);
@@ -75,7 +69,7 @@ export const getPlaylistById = async (req, res) => {
                 message: "the id is required"
             })
         }
-        const Playlist = await prisma.playlist.findUnique({
+        const Playlist = await prisma.playlist.findFirst({
             where: {
                 id: playlistId,
                 userId: req.user.id
@@ -124,20 +118,75 @@ export const addProblemtoPlaylist = async (req, res) => {
                 message: "the problem id is required"
             })
         }
+
+        const uniqueIds = [
+            ...new Set(
+                problemIds
+                    .map((id) => (id == null ? "" : String(id).trim()))
+                    .filter(Boolean)
+            )
+        ]
+        if (uniqueIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "the problem id is required"
+            })
+        }
+
+        const playlist = await prisma.playlist.findFirst({
+            where: { id: playlistId, userId: req.user.id },
+            select: { id: true }
+        })
+        if (!playlist) {
+            return res.status(404).json({
+                success: false,
+                message: "playlist not found"
+            })
+        }
+
+        const existingProblems = await prisma.problem.findMany({
+            where: { id: { in: uniqueIds } },
+            select: { id: true }
+        })
+        if (existingProblems.length !== uniqueIds.length) {
+            return res.status(400).json({
+                success: false,
+                message: "one or more problems do not exist"
+            })
+        }
+
         const problemsInPlaylist = await prisma.problemInPlaylist.createMany({
-            data: problemIds.map((problemId) => ({
-                playListId: playlistId,   // ✅ correct field name from schema
+            data: uniqueIds.map((problemId) => ({
+                playListId: playlistId,
                 problemId
-            }))
-        });
+            })),
+            skipDuplicates: true
+        })
+
+        const message =
+            problemsInPlaylist.count === 0
+                ? "those problems are already in this playlist"
+                : "the problem added to playlist successfully"
 
         return res.status(200).json({
             success: true,
-            message: "the problem added to playlist successfully",
+            message,
             problemsInPlaylist
         })
     } catch (error) {
         console.error("error in add problem to playlist", error);
+        if (error.code === "P2002") {
+            return res.status(409).json({
+                success: false,
+                message: "problem is already in this playlist"
+            })
+        }
+        if (error.code === "P2003") {
+            return res.status(400).json({
+                success: false,
+                message: "invalid playlist or problem reference"
+            })
+        }
         return res.status(500).json({
             success: false,
             message: "error in adding problem to playlist"

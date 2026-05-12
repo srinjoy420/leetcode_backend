@@ -8,13 +8,14 @@ const AddToPlaylist = ({ isOpen, onClose, problemId }) => {
 
     useEffect(() => {
         if (isOpen) {
+            setSelectedPlaylist("")
             getAllPlaylist()
         }
-    }, [isOpen])
+    }, [isOpen, problemId])
 
     const handelSubmit = async (e) => {
         e.preventDefault()
-        if (!selectedPlaylist) return
+        if (!selectedPlaylist || problemId == null || problemId === "") return
         await probLemaddToPlaylist(selectedPlaylist, [problemId])
         onClose()
     }
@@ -45,7 +46,7 @@ const AddToPlaylist = ({ isOpen, onClose, problemId }) => {
                             disabled={isLoading}
                         >
                             <option value="">Select Playlist</option>
-                            {playlists.map((playlist) => (
+                            {(playlists ?? []).map((playlist) => (
                                 <option key={playlist.id} value={playlist.id}>
                                     {playlist.name}
                                 </option>
@@ -60,7 +61,7 @@ const AddToPlaylist = ({ isOpen, onClose, problemId }) => {
                         <button
                             type="submit"
                             className="btn btn-primary"
-                            disabled={isLoading || !selectedPlaylist}
+                            disabled={isLoading || !selectedPlaylist || problemId == null || problemId === ""}
                         >
                             Add to Playlist
                         </button>

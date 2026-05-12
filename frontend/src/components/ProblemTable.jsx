@@ -61,10 +61,9 @@ const ProblemTable = ({ problems }) => {
         await createPlaylist(data)
     }
     // add to the playlisty
-    const handeladdtoPlaylist=async(problemId)=>{
-         setSelectedProblemId(problemId)
-         setIsaddPlaylistModelOpen(true)
-
+    const handeladdtoPlaylist = (problemId) => {
+        setSelectedProblemId(problemId)
+        setIsaddPlaylistModelOpen(true)
     }
     return (
 
