@@ -14,15 +14,15 @@ import AddToPlaylist from './AddToPlaylist.jsx';
 const ProblemTable = ({ problems }) => {
     const { authUser } = useAuthStore()
     const { isDeleating, deleteProblem } = useActionStore()
-    const {createPlaylist}=usePlayListStore()
+    const { createPlaylist } = usePlayListStore()
     const [search, setsearch] = useState("")
     const [dificullty, setDifficulty] = useState("ALL")
     const [seletedTag, setselectedTag] = useState("ALL")
     const [currentPage, setCurrentPage] = useState(1)
     const [isSolved, setIsSolved] = useState(false)
-    const[isCreateModelOpen,setIsCreateModelOpen]=useState(false)
-    const[isaddPlaylistModelOpen,setIsaddPlaylistModelOpen]=useState(false)
-    const[selectedProblemId,setSelectedProblemId]=useState(null)
+    const [isCreateModelOpen, setIsCreateModelOpen] = useState(false)
+    const [isaddPlaylistModelOpen, setIsaddPlaylistModelOpen] = useState(false)
+    const [selectedProblemId, setSelectedProblemId] = useState(null)
     const difficulties = ["EASY", "MEDIUM", "HARD"]
     const allTags = useMemo(() => {
         if (!Array.isArray(problems)) return []
@@ -57,7 +57,7 @@ const ProblemTable = ({ problems }) => {
         deleteProblem(id)
     }
     //create playlist
-    const createPlaylistHandeler=async(data)=>{
+    const createPlaylistHandeler = async (data) => {
         await createPlaylist(data)
     }
     // add to the playlisty
@@ -78,6 +78,14 @@ const ProblemTable = ({ problems }) => {
                     <Plus className="w-4 h-4" />
                     Create Playlist
                 </button>
+
+                <button className=" btn btn-primary gap-2">
+                    <Link to="/playlists">
+                        <ArrowRight className='w-4 h-4' />
+                        Playlists
+                    </Link>
+                </button>
+
             </div>
             {/* for the filters and tags */}
             <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
@@ -188,7 +196,7 @@ const ProblemTable = ({ problems }) => {
                                                     </div>
                                                 )}
                                                 <button className="btn btn-sm btn-outline flex gap-2 items-center"
-                                                onClick={()=>handeladdtoPlaylist(problem.id)}
+                                                    onClick={() => handeladdtoPlaylist(problem.id)}
                                                 >
                                                     <Bookmark className="w-4 h-4" />
                                                     <span className="hidden sm:inline">Save to the playlist</span>
@@ -214,9 +222,9 @@ const ProblemTable = ({ problems }) => {
             {/* pagination */}
             <div className="flex justify-center mt-6 gap-2">
                 <button
-                className='btn btn-sm'
-                disabled={currentPage===1}
-                onClick={()=>setCurrentPage((prev)=>prev-1)}
+                    className='btn btn-sm'
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
                 >
                     <ArrowLeft />
                     prev
@@ -224,11 +232,11 @@ const ProblemTable = ({ problems }) => {
                 <span className='btn btn-ghosh btn-sm'>
                     {currentPage}/{totalPages}
                 </span>
-                 <button
-                 className='btn btn-sm'
-                  disabled={currentPage===totalPages}
-                  onClick={()=>setCurrentPage((prev)=>prev+1)}
-                 >
+                <button
+                    className='btn btn-sm'
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
                     <ArrowRight />
                     Next
                 </button>
@@ -239,11 +247,11 @@ const ProblemTable = ({ problems }) => {
                 isOpen={isCreateModelOpen}
                 onClose={() => setIsCreateModelOpen(false)}
                 onSubmit={createPlaylistHandeler}
-               
+
             />
             <AddToPlaylist
                 isOpen={isaddPlaylistModelOpen}
-                onClose={()=>setIsaddPlaylistModelOpen(false)}
+                onClose={() => setIsaddPlaylistModelOpen(false)}
                 problemId={selectedProblemId}
             />
         </div>

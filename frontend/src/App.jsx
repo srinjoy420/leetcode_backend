@@ -13,6 +13,8 @@ import LogoutPage from './page/LogoutPage.jsx'
 import Layout from './layout/Layout.jsx'
 import AdminRoute from './components/AdminRoute.jsx'
 import ProblemPage from './page/ProblemPage.jsx'
+import PlayListPage from './page/PlayListPage.jsx'
+import PlayListDetailsPage from './page/PlayListDetailsPage.jsx'
 
 
 
@@ -46,6 +48,10 @@ const App = () => {
         <Route path='/logout' element={authUser ? <LogoutPage /> : <Navigate to='/login' />} />
 
         <Route path='/problem/:id' element={authUser ? <ProblemPage/> :<Navigate to='/login' />}/>
+
+        //playlist
+        <Route path='playlists' element={authUser ? <PlayListPage/> : <Navigate to='/login'/>}/>
+        <Route path='playlist/:id' element={authUser ? <PlayListDetailsPage/> : <Navigate to='/login'/>}/>
 
         <Route path="/add-problem" element={<AdminRoute />}>
           <Route
