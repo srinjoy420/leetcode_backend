@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { axiosInstance } from "../lib/axios.js"
 import toast from "react-hot-toast"
 
+
 export const useProblemStore=create((set)=>({
     problems:[],
     problem:null,
@@ -75,6 +76,26 @@ export const useProblemStore=create((set)=>({
             set({ iseExecuting: false })
         }
     },
+    updateProblem:async(id,data)=>{
+        set({isProblemLoading:true})
+        try {
+            const res=await axiosInstance.put(`problem/updateProblem/${id}`,data)
+            console.log(res.data.problem);
+            set({problem:res.data.problem})
+            toast.success(res.data.message || "problem updated succesfully")
+            
+        } catch (error) {
+            console.log("there is a problem updating",error);
+            toast.error(error.response?.data?.error || "failed to update the problem")
+
+            
+            
+        }
+        finally{
+            set({isProblemLoading:false})
+        }
+        
+    }
 
 
 }))

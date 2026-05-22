@@ -15,6 +15,7 @@ import AdminRoute from './components/AdminRoute.jsx'
 import ProblemPage from './page/ProblemPage.jsx'
 import PlayListPage from './page/PlayListPage.jsx'
 import PlayListDetailsPage from './page/PlayListDetailsPage.jsx'
+import UpdateProblem from './page/UpdateProblem.jsx'
 
 
 
@@ -57,6 +58,13 @@ const App = () => {
           <Route
             index
             element={<AddProblem />}
+          />
+        </Route>
+        //update problem route
+        <Route path="/update-problem/:id" element={<AdminRoute />}>
+          <Route
+            index
+            element={<UpdateProblem />}
           />
         </Route>
       </Routes>
