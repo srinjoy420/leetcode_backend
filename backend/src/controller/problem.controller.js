@@ -169,56 +169,80 @@ export const updateProblem = async (req, res) => {
         codeSnippets, referenceSolutions
     } = req.body;
 
-    if (!title || !description || !difficulty || !tags || !examples || !constraints || !testCases || !codeSnippets || !referenceSolutions) {
-        return res.status(400).json({ message: "Please fill all required fields" });
-    }
-
     try {
-        const problem = await prisma.problem.findUnique({ where: { id } });
+        const existing = await prisma.problem.findUnique({ where: { id } });
 
-        if (!problem) {
-            return res.status(404).json({ message: "Problem not found" }); // ✅ return added
+        if (!existing) {
+            return res.status(404).json({ message: "Problem not found" });
         }
 
-        for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
-            const languageId = getLanguageId(language);
+        const isFullUpdate =
+            tags && examples && testCases && codeSnippets && referenceSolutions;
 
-            if (!languageId) {
-                return res.status(400).json({ error: `Unsupported language: ${language}` });
+        if (!title || !description || !difficulty || !constraints) {
+            return res.status(400).json({
+                message: "Title, description, difficulty, and constraints are required"
+            });
+        }
+
+        if (isFullUpdate) {
+            for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
+                const languageId = getLanguageId(language);
+
+                if (!languageId) {
+                    return res.status(400).json({ error: `Unsupported language: ${language}` });
+                }
+
+                const submissions = testCases.map((tc) => ({
+                    source_code: solutionCode,
+                    language_id: languageId,
+                    stdin: tc.input,
+                    expected_output: tc.output
+                }));
+
+                const submissionResults = await submitBatch(submissions);
+                const tokens = submissionResults.map((r) => r.token);
+                const results = await pollBatchResults(tokens);
+
+                for (let i = 0; i < results.length; i++) {
+                    if (results[i].status.id !== 3) {
+                        return res.status(400).json({
+                            error: `Reference solution failed for ${language} on input: ${submissions[i].stdin}`,
+                            details: results[i]
+                        });
+                    }
+                }
             }
 
-            const submissions = testCases.map((tc) => ({
-                source_code: solutionCode,
-                language_id: languageId,
-                stdin: tc.input,
-                expected_output: tc.output
-            }));
-
-            const submissionResults = await submitBatch(submissions);
-            const tokens = submissionResults.map((r) => r.token);
-            const results = await pollBatchResults(tokens);
-
-            for (let i = 0; i < results.length; i++) {
-                if (results[i].status.id !== 3) {
-                    return res.status(400).json({
-                        error: `Reference solution failed for ${language} on input: ${submissions[i].stdin}`,
-                        details: results[i]
-                    });
+            const updatedProblem = await prisma.problem.update({
+                where: { id },
+                data: {
+                    title, description, difficulty, tags,
+                    examples, constraints, hints, editorial,
+                    testCases, codeSnippets, referenceSolutions
                 }
-            } // ✅ loop ends here — no DB call inside
+            });
+
+            return res.status(200).json({
+                message: "Problem updated successfully",
+                success: true,
+                problem: updatedProblem
+            });
         }
 
-        // ✅ update is outside both loops, has where clause, no userId
         const updatedProblem = await prisma.problem.update({
             where: { id },
             data: {
-                title, description, difficulty, tags,
-                examples, constraints, hints, editorial,
-                testCases, codeSnippets, referenceSolutions
+                title,
+                description,
+                difficulty,
+                constraints,
+                hints: hints ?? existing.hints,
+                editorial: editorial ?? existing.editorial,
             }
         });
 
-        return res.status(200).json({ // ✅ 200 not 201
+        return res.status(200).json({
             message: "Problem updated successfully",
             success: true,
             problem: updatedProblem

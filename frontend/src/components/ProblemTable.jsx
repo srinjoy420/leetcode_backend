@@ -190,9 +190,11 @@ const ProblemTable = ({ problems }) => {
 
                                                             />
                                                         </button>
-                                                        <button disabled className="btn btn-sm btn-warning">
+                                                      <Link to={`/update-problem/${problem.id}`}>
+                                                          <button  className="btn btn-sm btn-warning">
                                                             <PencilIcon className="w-4 h-4 text-white" />
                                                         </button>
+                                                      </Link>
                                                     </div>
                                                 )}
                                                 <button className="btn btn-sm btn-outline flex gap-2 items-center"
