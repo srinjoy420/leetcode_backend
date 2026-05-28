@@ -16,6 +16,7 @@ import ProblemPage from './page/ProblemPage.jsx'
 import PlayListPage from './page/PlayListPage.jsx'
 import PlayListDetailsPage from './page/PlayListDetailsPage.jsx'
 import UpdateProblem from './page/UpdateProblem.jsx'
+import Aboutme from './page/Aboutme.jsx'
 
 
 
@@ -67,6 +68,7 @@ const App = () => {
             element={<UpdateProblem />}
           />
         </Route>
+         <Route path='/about' element={authUser ? <Aboutme /> : <Navigate to='/' />} />
       </Routes>
 
     </div>

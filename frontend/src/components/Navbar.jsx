@@ -54,7 +54,7 @@ const Navbar = () => {
                 {/* Profile */}
                 <li>
                   <Link
-                    to="/profile"
+                    to="/about"
                     className="flex items-center hover:bg-primary hover:text-white text-base font-semibold"
                   >
                     <User className="w-4 h-4 mr-2" />
