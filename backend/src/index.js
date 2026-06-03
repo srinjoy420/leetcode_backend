@@ -22,7 +22,7 @@ app.set("trust proxy", 1)
 
 const allowedOrigins = [
     "http://localhost:5173",
-    "leetcode-backend-8y6x.vercel.app",
+    "https://leetcode-backend-8y6x.vercel.app",
 ].filter(Boolean)
 
 app.use(

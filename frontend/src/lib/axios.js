@@ -1,5 +1,5 @@
 import axios from "axios";
 export const axiosInstance=axios.create({
-     baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+     baseURL: `https://leetcode-backend-76wy.onrender.com/api/v1`,
     withCredentials:true
 })
