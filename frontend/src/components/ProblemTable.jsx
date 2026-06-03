@@ -6,8 +6,9 @@ import { Link } from "react-router-dom";
 import { Bookmark, PencilIcon, Trash, TrashIcon, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 import { useActionStore } from '../store/useAction.js';
 import { usePlayListStore } from '../store/usePlayListStore.js';
-import CreatePlaylistModal from './createPlaylistModel.jsx';
+import CreatePlaylistModal from "./CreatePlaylistModel.jsx";
 import AddToPlaylist from './AddToPlaylist.jsx';
+
 
 
 
