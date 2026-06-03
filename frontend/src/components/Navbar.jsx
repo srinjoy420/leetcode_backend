@@ -33,7 +33,7 @@ const Navbar = () => {
               <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
                 <div className="w-10 rounded-full">
                   <img
-                    src={authUser?.image || "https://robohash.org/yourtext?set=set1"}
+                    src={authUser?.profilePic || "https://robohash.org/yourtext?set=set1"}
                     alt="avatar"
                   />
                 </div>

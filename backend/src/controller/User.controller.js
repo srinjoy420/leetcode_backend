@@ -138,35 +138,39 @@ export const getProfile = async (req, res) => {
     }
 }
 export const updateProfilepic = async (req, res) => {
-    try {
-        const { profilePic } = req.body
-        if (!profilePic) {
-            return res.status(400).json({ message: "profilePic is required" })
-        }
+  try {
+    const { profilePic } = req.body;
 
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id }
-        })
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found", success: false })
-        }
-
-        const uploadResponse = await cloudinary.uploader.upload(profilePic)
-
-        const updatedUser = await prisma.user.update({
-            where: { id: req.user.id },
-            data: { profilePic: uploadResponse.secure_url }
-        })
-
-        res.status(200).json({
-            message: "Profile picture updated successfully",
-            success: true,
-            profilePic: updatedUser.profilePic,
-        })
-    } catch (error) {
-        console.log("error in changing the profile pic",error);
-        
-        res.status(500).json({ message: "Internal server error", success: false })
+    if (!profilePic) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture is required"
+      });
     }
-}
+
+    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+      folder: "profile-pictures"
+    });
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: req.user.id
+      },
+      data: {
+        profilePic: uploadResponse.secure_url
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      profilePic: updatedUser.profilePic
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

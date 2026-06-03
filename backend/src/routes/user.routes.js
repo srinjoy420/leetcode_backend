@@ -10,6 +10,6 @@ userroutes.post("/register",Registeruser)
 userroutes.post("/login",Loginuser)
 userroutes.post("/logout",authMiddleware,logOut)
 userroutes.get("/profile",authMiddleware,getProfile)
-userroutes.put("/updateProfile",authMiddleware,upload.single("profilePic"),updateProfilepic)
+userroutes.put("/updateProfile",authMiddleware,updateProfilepic)
 
 export default userroutes;
