@@ -2,7 +2,7 @@ import { prisma } from "../lib/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { UserRole } from "@prisma/client"
-import cloudinary from "../lib/Cloudnary.js";
+import { uploadProfileImage } from "../lib/Cloudnary.js";
 
 
 export const Registeruser = async (req, res) => {
@@ -45,6 +45,7 @@ export const Registeruser = async (req, res) => {
                 email: newUser.email,
                 name: newUser.name,
                 role: newUser.role,
+                profilePic: newUser.profilePic,
             },
         });
     } catch (error) {
@@ -80,14 +81,14 @@ export const Loginuser = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(201).json({
-            message: "User created successfully",
+            message: "User loggedin successfully",
             sucess: true,
             user: {
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-
+                profilePic: user.profilePic,
             }
         })
 
@@ -144,33 +145,34 @@ export const updateProfilepic = async (req, res) => {
     if (!profilePic) {
       return res.status(400).json({
         success: false,
-        message: "Profile picture is required"
+        message: "profilePic is required",
       });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
-      folder: "profile-pictures"
-    });
+    const imageUrl = await uploadProfileImage(profilePic);
 
     const updatedUser = await prisma.user.update({
-      where: {
-        id: req.user.id
+      where: { id: req.user.id },
+      data: { profilePic: imageUrl },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        profilePic: true,
       },
-      data: {
-        profilePic: uploadResponse.secure_url
-      }
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      profilePic: updatedUser.profilePic
+      profilePic: updatedUser.profilePic,
+      user: updatedUser,
     });
-
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
+    console.error("UPDATE PROFILE ERROR:", error);
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || "Failed to update profile picture",
     });
   }
 };

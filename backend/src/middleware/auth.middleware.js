@@ -1,7 +1,6 @@
+import "../config/env.js"
 import { prisma } from "../lib/db.js";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config()
 
 export const authMiddleware = async (req, res, next) => {
     try {
@@ -29,10 +28,10 @@ export const authMiddleware = async (req, res, next) => {
             where: { id: decode.id },
             select: {
                 id: true,
-
                 name: true,
                 email: true,
-                role: true
+                role: true,
+                profilePic: true,
             }
         })
         if (!user) {

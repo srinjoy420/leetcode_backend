@@ -83,9 +83,9 @@ export const useAuthStore = create((set) => ({
         const res = await axiosInstance.put("/auth/updateProfile", { profilePic })
         if (res.data.success) {
             set(state => ({
-                authUser: {
+                authUser: res.data.user ?? {
                     ...state.authUser,
-                    profilePic: res.data.profilePic
+                    profilePic: res.data.profilePic,
                 },
                 error: null
             }))

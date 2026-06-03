@@ -1,5 +1,6 @@
+import "./config/env.js"
+import { isCloudinaryConfigured, verifyCloudinaryCredentials } from "./lib/Cloudnary.js"
 import express from "express"
-import dotenv from "dotenv"
 import cors from "cors"
 import cookieparser from "cookie-parser"
 import userroutes from "./routes/user.routes.js"
@@ -14,7 +15,6 @@ import votesRouter from "./routes/Votes.routes.js"
 
 
 
-dotenv.config()
 const port=process.env.PORT
 const app=express()
 app.use(
@@ -36,7 +36,18 @@ app.get("/",(req,res)=>{
     res.send("hello")
 })
 
-app.listen(port,()=>{
-    console.log(`server is running on ${port}`);
-    
+app.listen(port, async () => {
+    console.log(`server is running on ${port}`)
+
+    if (!isCloudinaryConfigured) {
+        console.warn("[Cloudinary] NOT configured — profile picture upload will fail")
+        return
+    }
+
+    const check = await verifyCloudinaryCredentials()
+    if (check.ok) {
+        console.log("[Cloudinary] credentials OK (upload permission verified)")
+    } else {
+        console.warn(`[Cloudinary] ${check.reason}: ${check.detail}`)
+    }
 })
