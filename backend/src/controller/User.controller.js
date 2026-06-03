@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { UserRole } from "@prisma/client"
 import { uploadProfileImage } from "../lib/Cloudnary.js";
+import { getAuthCookieOptions } from "../lib/authCookie.js";
 
 
 export const Registeruser = async (req, res) => {
@@ -31,12 +32,7 @@ export const Registeruser = async (req, res) => {
         const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, {
             expiresIn: "7d",
         });
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV !== "development",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("jwt", token, getAuthCookieOptions());
 
         res.status(201).json({
             message: "User registered successfully",
@@ -74,12 +70,7 @@ export const Loginuser = async (req, res) => {
             expiresIn: "7d",
         });
 
-        res.cookie("jwt", token, {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV !== "development",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("jwt", token, getAuthCookieOptions());
         res.status(201).json({
             message: "User loggedin successfully",
             sucess: true,
@@ -100,12 +91,7 @@ export const Loginuser = async (req, res) => {
 }
 export const logOut = async (req, res) => {
     try {
-        res.clearCookie("jwt", {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV !== "development",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        })
+        res.clearCookie("jwt", getAuthCookieOptions())
         res.status(200).json({
             sucess: true,
             message: "User logged out successfully"

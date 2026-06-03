@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: leetlab-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma migrate deploy
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false
+      - key: CLOUDNARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDNARY_API_KEY
+        sync: false
+      - key: CLOUDNARY_API_SECRET
+        sync: false
