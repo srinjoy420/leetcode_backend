@@ -1,8 +1,11 @@
+import { prisma } from "../lib/db.js";
 export const getVotes = async (req, res) => {
     try {
         const userId = req.user.id;
         const { id: problemId } = req.params;
         const { vote } = req.body;
+
+        let userVote=null
 
         await prisma.$transaction(async (tx) => {
 
@@ -12,7 +15,7 @@ export const getVotes = async (req, res) => {
                 }
             });
 
-            // ✅ Case 1: New vote
+           
             if (!existing) {
                 await tx.problemRating.create({
                     data: { userId, problemId, vote }
@@ -40,6 +43,7 @@ export const getVotes = async (req, res) => {
                         downVotes: { decrement: vote === "DOWNVOTE" ? 1 : 0 }
                     }
                 });
+                userVote=null
             }
 
             // ✅ Case 3: Switch vote
@@ -60,10 +64,26 @@ export const getVotes = async (req, res) => {
                         }
                     }
                 });
+                userVote=vote
             }
         });
 
-        res.status(200).json({ message: "Vote handled successfully" });
+        // get latest count
+        const updateProblem=await prisma.problem.findUnique({
+            where:{
+                id:problemId
+            },
+            select:{
+                upVotes:true,
+                downVotes:true
+            }
+        })
+
+        res.status(200).json({ message: "Vote handled successfully",
+            upVotes:updateProblem.upVotes,
+            downVotes:updateProblem.downVotes,
+            userVote
+         });
 
     } catch (error) {
     console.log("FULL ERROR 👉", error);

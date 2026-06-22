@@ -3,14 +3,16 @@ import Editor from "@monaco-editor/react";
 import {
   Play, FileText, MessageSquare, Lightbulb, Bookmark,
   Share2, Clock, ChevronRight, Terminal, Code2,
-  Users, ThumbsUp, Home,
+  Users, ThumbsUp, Home, ThumbsDown
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useProblemStore } from "../store/useProblemStore";
 import { getLanguageId } from "../lib/lang";
 import SubmissionResults from "../components/Submission.jsx";
 import { useSubmissionStore } from "../store/useSubmissionStore.js";
+
 import SubmissionList from "../components/SubmissionList.jsx";
+import { useVoteStore } from "../store/useVote.js";
 
 
 
@@ -24,19 +26,30 @@ const ProblemPage = () => {
     submission,
     exeCuteCode,
   } = useProblemStore();
-  const { submissions, isLoading:isSubmissionsLoading, getAllSubmission, getSubmissionforProblem, submissionCount, getSubmissioncountForProblem } = useSubmissionStore()
+  const { voteProblem, votes } = useVoteStore()
+  const { submissions, isLoading: isSubmissionsLoading, getAllSubmission, getSubmissionforProblem, submissionCount, getSubmissioncountForProblem } = useSubmissionStore()
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [selectLanguage, setSelectLanguage] = useState("Javascript");
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [testCases, setTestCases] = useState([]);
 
-  
+
 
   useEffect(() => {
     getProblemByid(id);
     getSubmissioncountForProblem(id)
+
   }, [id]);
+  //the handelvote
+  const currentVote = votes[problem.id]?.userVote;
+
+  const upVotes =
+    votes[problem.id]?.upVotes ?? problem.upVotes;
+
+  const downVotes =
+    votes[problem.id]?.downVotes ?? problem.downVotes;
+
 
   useEffect(() => {
     if (!problem) return;
@@ -51,13 +64,13 @@ const ProblemPage = () => {
     );
   }, [problem, selectLanguage]);
 
-  useEffect(()=>{
-    if(activeTab ==="submissions" && id){
+  useEffect(() => {
+    if (activeTab === "submissions" && id) {
       getSubmissioncountForProblem(id)
       getSubmissionforProblem(id)
     }
-  },[activeTab, id])
-  
+  }, [activeTab, id])
+
 
   const handelLanguageChange = (e) => {
     const lang = e.target.value;
@@ -66,19 +79,19 @@ const ProblemPage = () => {
   };
 
   //the run code
-  const handelrunCode=(e)=>{
+  const handelrunCode = (e) => {
     e.preventDefault()
     try {
-      const language_id=getLanguageId(selectLanguage)
-      const stdin=(problem.testCases ?? []).map((tc)=>tc.input ?? tc.stdin)
-      const expected_outputs=testCases.map((tc)=>tc.output)
-      exeCuteCode({source_code:code,language_id,stdin,expected_outputs,problemId:id})
+      const language_id = getLanguageId(selectLanguage)
+      const stdin = (problem.testCases ?? []).map((tc) => tc.input ?? tc.stdin)
+      const expected_outputs = testCases.map((tc) => tc.output)
+      exeCuteCode({ source_code: code, language_id, stdin, expected_outputs, problemId: id })
     } catch (error) {
-      console.log("error in running the code",error);
-      
-      
+      console.log("error in running the code", error);
+
+
     }
-  } 
+  }
 
   const renderTab = () => {
     switch (activeTab) {
@@ -139,7 +152,7 @@ const ProblemPage = () => {
 
       case "submissions":
         return (
-         <SubmissionList problemId={id} submissions={submissions} isLoading={isSubmissionsLoading} />
+          <SubmissionList problemId={id} submissions={submissions} isLoading={isSubmissionsLoading} />
         );
 
       case "discussion":
@@ -155,12 +168,12 @@ const ProblemPage = () => {
           <div className="flex flex-col items-center justify-center py-16 text-base-content/30 gap-3">
             <Lightbulb className="w-10 h-10 opacity-20" />
             {
-              problem?.hints ?(
-                <div  className="bg-base-200 p-6 rounded-xl">
-                <span className="bg-black/90 px-4 py-1 rounded-lg font-semibold text-white text-lg">{problem.hints}</span></div>
-              ):(
-                  <div>No hints yet</div>
-                )
+              problem?.hints ? (
+                <div className="bg-base-200 p-6 rounded-xl">
+                  <span className="bg-black/90 px-4 py-1 rounded-lg font-semibold text-white text-lg">{problem.hints}</span></div>
+              ) : (
+                <div>No hints yet</div>
+              )
             }
           </div>
         );
@@ -191,11 +204,10 @@ const ProblemPage = () => {
           </Link>
           <ChevronRight className="w-3 h-3 text-base-content/20" />
           <span className="text-sm font-semibold truncate max-w-xs">{problem.title}</span>
-          <span className={`badge badge-sm font-semibold text-white ml-1 ${
-            problem.difficulty === "EASY" ? "badge-success"
+          <span className={`badge badge-sm font-semibold text-white ml-1 ${problem.difficulty === "EASY" ? "badge-success"
             : problem.difficulty === "MEDIUM" ? "badge-warning"
-            : "badge-error"
-          }`}>
+              : "badge-error"
+            }`}>
             {problem.difficulty}
           </span>
         </div>
@@ -217,6 +229,30 @@ const ProblemPage = () => {
           <span className="flex items-center gap-1">
             <ThumbsUp className="w-3 h-3" />
             95% success rate
+          </span>
+          {/* the vote section */}
+          <span className="flex items-center gap-1">
+            <button
+              onClick={() => voteProblem(problem.id, "UPVOTE")}
+              className={`btn ${currentVote === "UPVOTE"
+                ? "btn-success"
+                : "btn-outline"
+                }`}
+            >
+              👍 {upVotes}
+            </button>
+            <button
+              onClick={() => voteProblem(problem.id, "DOWNVOTE")}
+              className={`btn ${currentVote === "DOWNVOTE"
+                  ? "btn-error"
+                  : "btn-outline"
+                }`}
+            >
+              👎 {downVotes}
+            </button>
+
+
+
           </span>
         </div>
 
@@ -253,9 +289,9 @@ const ProblemPage = () => {
               <div className="tabs tabs-bordered px-2 pt-1">
                 {[
                   { id: "description", icon: <FileText className="w-4 h-4" />, label: "Description" },
-                  { id: "submissions", icon: <Code2 className="w-4 h-4" />,    label: "Submissions" },
-                  { id: "discussion",  icon: <MessageSquare className="w-4 h-4" />, label: "Discussion" },
-                  { id: "hints",       icon: <Lightbulb className="w-4 h-4" />, label: "Hints" },
+                  { id: "submissions", icon: <Code2 className="w-4 h-4" />, label: "Submissions" },
+                  { id: "discussion", icon: <MessageSquare className="w-4 h-4" />, label: "Discussion" },
+                  { id: "hints", icon: <Lightbulb className="w-4 h-4" />, label: "Hints" },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -303,7 +339,7 @@ const ProblemPage = () => {
               </div>
 
               <div className="p-3 border-t border-base-300 bg-base-200 flex justify-between items-center">
-                <button className={`btn btn-sm btn-primary gap-2 ${iseExecuting ? "loading":""}`} onClick={handelrunCode} disabled={iseExecuting}>
+                <button className={`btn btn-sm btn-primary gap-2 ${iseExecuting ? "loading" : ""}`} onClick={handelrunCode} disabled={iseExecuting}>
                   <Play className="w-3 h-3 fill-current" />
                   Run
                 </button>
