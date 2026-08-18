@@ -41,15 +41,11 @@ const ProblemPage = () => {
     getSubmissioncountForProblem(id)
 
   }, [id]);
-  //the handelvote
-  const currentVote = votes[problem.id]?.userVote;
 
-  const upVotes =
-    votes[problem.id]?.upVotes ?? problem.upVotes;
-
-  const downVotes =
-    votes[problem.id]?.downVotes ?? problem.downVotes;
-
+  const problemId = problem?.id;
+  const currentVote = problemId ? votes[problemId]?.userVote : null;
+  const upVotes = problemId ? (votes[problemId]?.upVotes ?? problem.upVotes ?? 0) : 0;
+  const downVotes = problemId ? (votes[problemId]?.downVotes ?? problem.downVotes ?? 0) : 0;
 
   useEffect(() => {
     if (!problem) return;
@@ -233,7 +229,7 @@ const ProblemPage = () => {
           {/* the vote section */}
           <span className="flex items-center gap-1">
             <button
-              onClick={() => voteProblem(problem.id, "UPVOTE")}
+              onClick={() => problemId && voteProblem(problemId, "UPVOTE")}
               className={`btn ${currentVote === "UPVOTE"
                 ? "btn-success"
                 : "btn-outline"
@@ -242,7 +238,7 @@ const ProblemPage = () => {
               👍 {upVotes}
             </button>
             <button
-              onClick={() => voteProblem(problem.id, "DOWNVOTE")}
+              onClick={() => problemId && voteProblem(problemId, "DOWNVOTE")}
               className={`btn ${currentVote === "DOWNVOTE"
                   ? "btn-error"
                   : "btn-outline"
