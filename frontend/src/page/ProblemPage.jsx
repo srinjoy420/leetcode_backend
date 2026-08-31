@@ -26,7 +26,7 @@ const ProblemPage = () => {
     submission,
     exeCuteCode,
   } = useProblemStore();
-  const { voteProblem, votes } = useVoteStore()
+  const { voteProblem, votes, getProblemVote,isVoting,isLoadingVote } = useVoteStore()
   const { submissions, isLoading: isSubmissionsLoading, getAllSubmission, getSubmissionforProblem, submissionCount, getSubmissioncountForProblem } = useSubmissionStore()
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState("description");
@@ -37,15 +37,26 @@ const ProblemPage = () => {
 
 
   useEffect(() => {
+    if (!id) return
     getProblemByid(id);
     getSubmissioncountForProblem(id)
+    getProblemVote(id)
 
   }, [id]);
 
   const problemId = problem?.id;
-  const currentVote = problemId ? votes[problemId]?.userVote : null;
-  const upVotes = problemId ? (votes[problemId]?.upVotes ?? problem.upVotes ?? 0) : 0;
-  const downVotes = problemId ? (votes[problemId]?.downVotes ?? problem.downVotes ?? 0) : 0;
+
+  const currentVote = problemId
+    ? votes[problemId]?.userVote
+    : null;
+
+  const upVotes = problemId
+    ? (votes[problemId]?.upVotes ?? problem.upVotes ?? 0)
+    : 0;
+
+  const downVotes = problemId
+    ? (votes[problemId]?.downVotes ?? problem.downVotes ?? 0)
+    : 0;
 
   useEffect(() => {
     if (!problem) return;
@@ -230,21 +241,25 @@ const ProblemPage = () => {
           <span className="flex items-center gap-1">
             <button
               onClick={() => problemId && voteProblem(problemId, "UPVOTE")}
-              className={`btn ${currentVote === "UPVOTE"
-                ? "btn-success"
+              disabled={isVoting}
+              className={`btn transition-all ${currentVote === "UPVOTE"
+                ? "bg-green-700 text-white border-green-700"
                 : "btn-outline"
                 }`}
             >
-              👍 {upVotes}
+              <ThumbsUp className="w-4 h-4" />
+              {upVotes}
             </button>
             <button
               onClick={() => problemId && voteProblem(problemId, "DOWNVOTE")}
-              className={`btn ${currentVote === "DOWNVOTE"
-                  ? "btn-error"
+              disabled={isVoting}
+              className={`btn transition-all ${currentVote === "DOWNVOTE"
+                  ? "bg-red-700 text-white border-red-700"
                   : "btn-outline"
                 }`}
             >
-              👎 {downVotes}
+              <ThumbsDown className="w-4 h-4" />
+              {downVotes}
             </button>
 
 
